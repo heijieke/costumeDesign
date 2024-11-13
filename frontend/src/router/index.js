@@ -2,6 +2,7 @@ import { createWebHistory, createRouter } from "vue-router";
 import Diy from "@/views/Diy.vue";
 import SVGRender from "@/views/SVGRender.vue";
 import texture from '@/views/texture.vue';
+import Surface from '@/views/Surface.vue';
 
 const routes = [
   {
@@ -18,6 +19,11 @@ const routes = [
     path: "/texture",
     name: "texture",
     component: texture,
+  },
+  {
+    path: "/surface",
+    name: "surface",
+    component: Surface,
   },
 ];
 
