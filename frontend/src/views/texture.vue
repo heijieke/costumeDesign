@@ -2,8 +2,10 @@
     <!-- <div>
         <img :src="img_url">
     </div> -->
-    <div ref="container1" v-show="false"></div>
-    <div ref="container2"></div>
+    <div class="parent">
+        <div class="childleft" ref="container1" v-show="true"></div>
+        <div class="childright" ref="container2"></div>
+    </div>
 </template>
 
 <script setup>
@@ -81,7 +83,7 @@
         // 设置相机距离原点的最近距离
         controls2.minDistance = 1;
         // 设置相机距离原点的最远距离
-        controls2.maxDistance = 1000;
+        controls2.maxDistance = 5000;
         // 是否开启右键拖拽
         controls2.enablePan = true;
     }
@@ -103,7 +105,7 @@
         // 设置相机距离原点的最近距离
         controls1.minDistance = 1;
         // 设置相机距离原点的最远距离
-        controls1.maxDistance = 1000;
+        controls1.maxDistance = 5000;
         // 是否开启右键拖拽
         controls1.enablePan = true;
     }
@@ -157,8 +159,6 @@
             // 控制点数据(ps坐标原点在左上角，x轴正方向向右，y轴正方向向下)
             //异步加载，加载完后需要渲染一次，不然不显示
             fileLoader.load( svg_url, function ( svg ) {
-
-                const node = document.createElementNS( 'http://www.w3.org/2000/svg', 'g' );
                 const parser = new DOMParser();
                 svgElement = parser.parseFromString( svg, 'image/svg+xml' ).documentElement;
                 const smartObject = svgElement.getElementById(group_id).childNodes[1];
@@ -254,22 +254,22 @@
                         scene1.add(bezierSurfaceMesh);
                         renderer1.render(scene1, camera1);
                     });
-                })
-
+                });
+                renderer1.render(scene1, camera1);
+                resolve('begin render2!');
             } );
         });
     }
 
     function init2() {
 
-        camera2 = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 1000 );
-        //const z =  (window.innerHeight/2)/Math.tan(50);
-        const z = 1000;
+        camera2 = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000);
+        const z =  600 + (height/2)/Math.tan(75);
         console.log(z);
         camera2.position.set( 0, 0, z);
+        camera2.lookAt(0,0,0);
 
         scene2 = new THREE.Scene();
-
         let sucaiDiy = document.createElementNS('http://www.w3.org/2000/svg',"image");
         sucaiDiy.setAttribute("crossOrigin", "anonymous");
         sucaiDiy.setAttribute("id", "hellokitty");
@@ -283,11 +283,11 @@
         sucai5.setAttribute("xlink:href", "#hellokitty");
         sucai5.setAttribute("href", "#hellokitty");
 
-        // const a = document.createElement('a');
-        // a.href = renderer1.domElement.toDataURL("image/png");
-        // a.download = "sucai5.png";
-        // document.body.appendChild(a);
-        // a.click();
+        const a = document.createElement('a');
+        a.href = renderer1.domElement.toDataURL("image/png");
+        a.download = "sucai5.png";
+        document.body.appendChild(a);
+        a.click();
 
         // const svgData = new XMLSerializer().serializeToString(svgElement);
         // const blob = new Blob([svgData], {type:'image/svg+xml'});
@@ -299,26 +299,25 @@
         // document.body.appendChild(downloadLink);
         // downloadLink.click();
 
-        const node = document.createElementNS( 'http://www.w3.org/2000/svg','svg');
-        node.appendChild(svgElement);
-        const object = new SVGObject(node);
-        object.position.set(0,0,0);
-        scene2.add( object );
+        // const node = document.createElementNS( 'http://www.w3.org/2000/svg','g');
+        // node.appendChild(svgElement);
+        // const object = new SVGObject(node);
+        // object.position.set(0,0,0);
+        // scene2.add( object );
 
         renderer2 = new SVGRenderer();
-        renderer2.setSize( window.innerWidth, window.innerHeight );
-        //renderer2.setQuality( 'low' );
+        renderer2.setSize( width, height );
+        renderer2.setQuality( 'low' );
         container2.value.appendChild( renderer2.domElement );
     }
 
 
     function animate(){
-        //controls1.update();
+        renderer1.render(scene1, camera1);
+        controls1.update();
         controls2.update();
-        //renderer1.render(scene1, camera1);
         renderer2.render(scene2, camera2);
         stats.update();
-
         requestAnimationFrame(animate);
     }
 
@@ -330,7 +329,7 @@
             //container.value.appendChild(renderer.domElement);
             initStats();
             init1();            
-            //initControls1();
+            initControls1();
             // animate();
             viewmode1().then(function(){
                 init2();
@@ -379,12 +378,12 @@
 
 
                 // const a = document.createElement('a');
-                // a.href = canvas.toDataURL('image/jpeg');
-                // a.download = "sucai.jpg";
+                // a.href = canvas.toDataURL('image/png');
+                // a.download = "sucai.png";
                 // document.body.appendChild(a);
                 // a.click();
 
-                resolve(canvas.toDataURL('image/jpeg'));
+                resolve(canvas.toDataURL('image/png'));
             }
             img.onerror = () => rejects(new Error('Could not load image at ' + imgpath));
 
@@ -392,3 +391,26 @@
         });
         }
 </script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped lang="scss">
+.parent {
+  display: flex;
+  height: 90vh; /* 让容器高度占满视口 */
+  width: 90vh; /* 让容器高度占满视口 */
+  align-items: center;
+  justify-items: left;
+}
+.childleft {
+  display: flex;
+  padding: 20px;
+  border: 1px solid #ccc;
+  justify-items: left;
+}
+.childright {
+  display: flex;
+  padding: 20px;
+  border: 1px solid #ccc;
+  justify-items: right;
+}
+</style>

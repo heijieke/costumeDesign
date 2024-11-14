@@ -9,5 +9,14 @@ export default defineConfig({
     alias: {
       '@': '/src'
     }
-  }
+  },
+
+  // css: {
+  //   preprocessorOptions: {
+  //     scss: {
+  //       javascriptEnabled: true,
+  //       additionalData: '@import "./src/styles/variable.scss";',
+  //     },
+  //   },
+  // },
 })
