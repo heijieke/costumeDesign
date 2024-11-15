@@ -1,6 +1,6 @@
 import { createWebHistory, createRouter } from "vue-router";
 import Diy from "@/views/Diy.vue";
-import SVGRender from "@/views/SVGRender.vue";
+import sucaiRender from "@/views/sucaiRender.vue";
 import texture from '@/views/texture.vue';
 import Surface from '@/views/Surface.vue';
 
@@ -11,9 +11,9 @@ const routes = [
     component: Diy,
   },
   {
-    path: "/svgrender",
-    name: "SVGRender",
-    component: SVGRender,
+    path: "/sucaiRender",
+    name: "sucaiRender",
+    component: sucaiRender,
   },
   {
     path: "/texture",
