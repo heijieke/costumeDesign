@@ -13,20 +13,37 @@
     import WebGL from 'three/addons/capabilities/WebGL.js';
     import {SVGRenderer, SVGObject } from 'three/addons/renderers/SVGRenderer.js';
 
+    //外部参数
+    const svg_url = 'src\\assets\\model1.svg';
+    const sucai_url = 'src\\assets\\hellokitty.png';
+    const sucai_id = '771b1cae-fca6-6147-994d-5263a3e90c1e';
+    const offsetX = 100;
+    const offsetY = 0;
+
     const container = ref();
     const mainRenderer = new SVGRenderer();
     mainRenderer.setSize(window.innerWidth, window.innerHeight);
     mainRenderer.setQuality('high');
+
+    const camera2 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+    camera2.position.z = (window.innerWidth/2) / Math.tan(THREE.MathUtils.degToRad(75 / 2));
+    camera2.position.x = 0;
+    camera2.position.y = 0;
+    camera2.lookAt(0,0,0);
+    // const camera2 = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 0.1, 1000);
+    // camera2.position.z = 1000; // 确保相机处于合适的距离
+    // camera2.position.x = -100;
+    // camera2.position.y = -100;
+
 
     const scene2 = new THREE.Scene();
     //const scene1 = new THREE.Scene();
     const offscreenRenderer = new THREE.WebGLRenderer({
         antialias:true
     });
-    const width = 1000, height = 1000;
+    const width = 1200, height = 1200;
     offscreenRenderer.setSize(width, height);
-
-    const camera1 = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    const camera1 = new THREE.PerspectiveCamera(75, width / height, 0.1, 10000);
     const distance = (width/2) / Math.tan(THREE.MathUtils.degToRad(75 / 2));
     camera1.position.z = distance;
     //lookAt和OrbitControls二选一，二者都没有时不显示渲染结果
@@ -34,45 +51,37 @@
 
     const fileLoader = new THREE.FileLoader();
 
-    const helper = new THREE.GridHelper( width, 3, 0x8d8d8d, 0xc1c1c1 );
-    helper.position.set(0,0,0);
-    helper.rotation.x = Math.PI / 2;
-    helper.scale.set(0.1,0.1,0.1);
-    scene2.add( helper );
     //scene1.add( helper );
-    const stats = new Stats();
-    document.body.appendChild(stats.domElement);
+    // const stats = new Stats();
+    // document.body.appendChild(stats.domElement);
 
     //const controls = new OrbitControls(camera1, offscreenRenderer.domElement);
-    const controls = new OrbitControls(camera1, mainRenderer.domElement);
+    //const controls = new OrbitControls(camera2, mainRenderer.domElement);
     // 如果使用animate方法时，将此函数删除
     // controls.addEventListener('change', offscreenRenderer.render(camera1, scene1));
     // 使动画循环使用时阻尼或自传，意思是否有惯性
-    controls.enableDamping = true;
+    //controls.enableDamping = true;
     // 动态阻尼系数，就是鼠标拖拽旋转的灵敏度
-    controls.dampingFactor = 0.25
+    //controls.dampingFactor = 0.25
     // 是否可以缩放
-    controls.enableZoom = true;
+    //controls.enableZoom = true;
     // 是否自动旋转
-    controls.enableRotate = true;
-    controls.autoRotate = false;
+    //controls.enableRotate = true;
+    //controls.autoRotate = false;
     // 设置相机距离原点的最近距离
-    controls.minDistance = 1;
+    //controls.minDistance = 1;
     // 设置相机距离原点的最远距离
-    controls.maxDistance = 10000;
+    //controls.maxDistance = 10000;
     // 是否开启右键拖拽
-    controls.enablePan = true;
+    //controls.enablePan = true;
 
-    const gui = new dat.GUI();
-    const posFolder = gui.addFolder("相机位置");
-    posFolder.add(camera1.position, "x", -100, 100);
-    posFolder.add(camera1.position, "y", -100, 100);
-    posFolder.add(camera1.position, "z", -5000, 5000, 10);
+    // const gui = new dat.GUI();
+    // const posFolder = gui.addFolder("相机位置");
+    // posFolder.add(camera1.position, "x", -100, 100);
+    // posFolder.add(camera1.position, "y", -100, 100);
+    // posFolder.add(camera1.position, "z", -5000, 5000, 10);
 
     let svgElement;
-    const svg_url = 'src\\assets\\svg.svg';
-    const sucai_url = 'src\\assets\\hellokitty.png';
-    const sucai_id = 'c1e55387-e453-8a46-933e-059e869ec1c9';
     // 控制点数组(threejs坐标原点在canvas正中间，x轴正方向向左，y轴正方向向上)
     const controlPoints = new Array(4);
 
@@ -246,6 +255,8 @@
                                 imageHeight: { value: texture.image.height},
                                 planeWidth: { value: width},
                                 planeHeight: { value: height},
+                                offsetX: { value: offsetX},
+                                offsetY: { value: offsetY},
                                 backgroundColor: { value: new THREE.Color(0xff00ff)},
                             },
                             vertexShader: `
@@ -270,24 +281,32 @@
 
                         let sucaiDiy = document.createElementNS('http://www.w3.org/2000/svg',"image");
                         sucaiDiy.setAttribute("crossOrigin", "anonymous");
-                        sucaiDiy.setAttribute("id", "sucaidiy"+i);
                         sucaiDiy.setAttribute("width", "1200");
                         sucaiDiy.setAttribute("height", "1200");
+                        sucaiDiy.setAttribute("id", "sucaidiy"+i);
                         sucaiDiy.setAttribute("xlink:href", dataURL);
                         sucaiDiy.setAttribute("href", dataURL);
-                        sucaiDiy.setAttribute("style", "opacity:1.000;mix-blend-mode: multiply");
+                        
+                        svgElement.getElementsByTagName('defs')[0].appendChild(sucaiDiy);
+                        groups[i].childNodes[1].setAttribute('href', '#'+"sucaidiy"+i);
+                        groups[i].childNodes[1].setAttribute('xlink:href', '#'+"sucaidiy"+i);
+                        groups[i].setAttribute('style', groups[i].childNodes[1].getAttribute('style'));
 
-                        groups[i].replaceChild(sucaiDiy, groups[i].childNodes[1]);
+                        console.log(svgElement);
+                        svgElement.setAttribute('viewBox', "0 0 1200 1200");
+                        svgElement.setAttribute('width', "600");
+                        svgElement.setAttribute('height', "600");
 
                         // const a = document.createElement('a');
                         // a.href = dataURL;
                         // a.download = 'sucai5-' + i + '.png';
                         // document.body.appendChild(a);
                         // a.click();
-                        console.log(svgElement);
+                        //console.log(svgElement);
 
                         if (i == groups.length-1){
                             console.log('load complete!');
+                            offscreenRenderer.dispose();
                             resolve('load complete!');
                         }
                     });
@@ -296,6 +315,8 @@
         });
     }
 
+    const node = document.createElementNS( 'http://www.w3.org/2000/svg','g');
+    let object;
     const offscreenRender = () => {
         return new Promise(function (resolve, reject){
             console.log('begin renderer');
@@ -330,13 +351,20 @@
             // document.body.appendChild(downloadLink);
             // downloadLink.click();
 
-            const node = document.createElementNS( 'http://www.w3.org/2000/svg','g');
+            
             node.appendChild(svgElement);
-            const object = new SVGObject(node);
-            object.position.set(0,0,0);
+            object = new SVGObject(node);
+            object.position.set(-window.innerWidth/2,window.innerHeight/2,0);
+            object.scale.set(0.5, 0.5, 0.5);
             scene2.add( object );
 
-            mainRenderer.render(scene2, camera1);
+            const helper = new THREE.GridHelper( width, 3);
+            helper.position.set(-window.innerWidth/2,-window.innerHeight/2,0);
+            helper.rotation.x = Math.PI / 2;
+            helper.scale.set(0.1,0.1,0.1);
+            scene2.add( helper );
+
+            //mainRenderer.render(scene2, camera2);
             resolve('begin animate');
 
         })
@@ -344,11 +372,10 @@
 
 
     function animate(){
-        mainRenderer.render(scene2, camera1);
-        controls.update();
-        //offscreenRenderer.render(scene1, camera1);
-        
         requestAnimationFrame(animate);
+        //controls.update();
+        mainRenderer.render(scene2, camera2);
+        //offscreenRenderer.render(scene1, camera1);
     }
 
     // 贝塞尔基函数
@@ -389,6 +416,8 @@
         uniform float planeWidth;
         uniform float planeHeight;
         uniform vec3 backgroundColor;
+        uniform float offsetX;
+        uniform float offsetY;
         varying vec2 vUv;
 
         void main() {
@@ -399,23 +428,17 @@
             vec2 vUv2 = vec2(vUv3.x + 0.5, vUv3.y + 0.5);
 
             // 计算纹理的有效区域偏移
-            float scaleX = planeWidth / imageWidth;
-            float scaleY = planeHeight / imageHeight;
-            float scale = min(scaleX, scaleY);
-
-            // 计算纹理坐标的偏移量，使图片居中
-            float offsetX = (planeWidth - imageWidth * scale) / 2.0;
-            float offsetY = (planeHeight - imageHeight * scale) / 2.0;
-
-            // 缩放并偏移UV坐标
-            vec2 uvScaled = vUv2 * vec2(planeWidth, planeHeight);  // 转换为平面上的像素坐标
-
-            // 判断该像素是否在有效的纹理区域内
-            if (uvScaled.x >= offsetX && uvScaled.x <= offsetX + imageWidth * scale &&
-                uvScaled.y >= offsetY && uvScaled.y <= offsetY + imageHeight * scale) {
-                // 在有效区域，采样纹理
+            float scale = min(planeWidth/imageWidth, planeHeight/imageHeight);
+            float scaleX = (planeWidth * vUv2.x - offsetX*scale)/imageWidth/scale;
+            float scaleY = (planeHeight * vUv2.y - offsetY*scale)/imageHeight/scale;
+            
+            if (scaleX >= 0.0 && scaleY >= 0.0 && scaleX <= 1.0 && scaleY <=1.0) {
+                // 缩放UV坐标
+                vUv2.x = scaleX;
+                vUv2.y = scaleY;
                 vec4 texColor = texture2D(img_texture, vUv2);
                 gl_FragColor = texColor;
+
             } else {
                 // 超出有效区域，渲染背景颜色
                 gl_FragColor = vec4(backgroundColor, 1.0);
@@ -431,10 +454,10 @@
     //挂载完毕获取dom  
     onMounted(()=>{
         if ( WebGL.isWebGL2Available() ) {
+            // mainRenderer.domElement.addEventListener('wheel', (event) => {
+            //     event.preventDefault(); // 防止默认的滚轮行为
+            // });
             container.value.appendChild(mainRenderer.domElement);
-            //container.value.appendChild(offscreenRenderer.domElement);
-            // Initiate function or other initializations here
-            console.log('开始挂载!');
         } else {
             console.log('WebGL2 is not Available!');
             const warning = WebGL.getWebGL2ErrorMessage();
@@ -442,4 +465,38 @@
         }
     })
 
+    // 监听鼠标滚轮事件
+    let scaleFactor = 1.1; // 缩放因子
+    window.addEventListener('wheel', (event) => {
+    // 阻止默认滚动行为
+    //event.preventDefault();
+    console.log("camera postion:");
+    console.log( camera2.position);
+    console.log("object postion:");
+    console.log(object.position);
+    console.log("object scale:");
+    console.log(object.scale);
+
+    if (event.deltaY > 0) {
+        // 向下滚动，缩小
+        camera2.position.z *= scaleFactor;
+    } else {
+        // 向上滚动，放大
+        camera2.position.z /= scaleFactor;
+    }
+    }, { passive: false });
+
 </script>
+
+<!-- <style scoped>
+#svg-container {
+  display: flex;
+  justify-content: center; /* 水平方向居中 */
+  align-items: center; /* 垂直方向居中 */
+  width: 100vw; /* 占满整个浏览器宽度 */
+  height: 100vh; /* 占满整个浏览器高度 */
+  background-color: #202020; /* 背景色 */
+  overflow: hidden; /* 隐藏溢出的内容 */
+  position: relative;
+}
+</style> -->
