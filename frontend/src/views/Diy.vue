@@ -1,5 +1,63 @@
+<style scoped>
+.container {
+  display: flex;
+  justify-content: left; 
+  align-items: left;
+  width: 100vw; /* 占满整个浏览器宽度 */
+  height: 100vh; /* 占满整个浏览器高度 */
+  background-color: #ffffff; /* 背景色 */
+  overflow: hidden; /* 隐藏溢出的内容 */
+  position: relative;
+}
+.sucai-container {
+  display: flex;
+  flex-direction: column;
+  width: 20vw; /* 占满整个浏览器宽度 */
+  height: 100vh; /* 占满整个浏览器高度 */
+  background-color: #ffffff; /* 背景色 */
+  overflow: hidden; /* 隐藏溢出的内容 */
+  position: relative;
+}
+.svg-container {
+  display: flex;
+  justify-content: center; /* 水平方向居中 */
+  align-items: center; /* 垂直方向居中 */
+  width: 70vw; /* 占满整个浏览器宽度 */
+  height: 100vh; /* 占满整个浏览器高度 */
+  background-color: #202020; /* 背景色 */
+  overflow: hidden; /* 隐藏溢出的内容 */
+  position: relative;
+}
+</style>
 <template>
-    <div ref="container"></div>
+    <div class="container">
+        <div class="sucai-container">
+            <div>素材</div>
+            <div>
+                <img class="margin: auto;" src="@//assets//hellokitty.png" width="200" height="200"></img>
+                <el-button @click="changeSucai(1)">切换素材1</el-button>
+            </div>
+            <div>
+                <img class="margin: auto;" src="@//assets//sucai2.png" width="200" height="200"></img>
+                <button @click="changeSucai(2)">切换素材2</button>
+            </div>
+            <div>产品</div>
+            <div>
+                <object type="image/svg+xml" data="src/assets/image (1).svg" width="200" height="200"></object>
+                <button @click="changeProduct(3)">切换产品3</button>
+            </div>
+            <div>
+                <object type="image/svg+xml" data="src/assets/svg.svg" width="200" height="200"></object>
+                <button @click="changeProduct(1)">切换产品1</button>
+            </div>
+            <div>
+                <object type="image/svg+xml" data="src/assets/model1.svg" width="200" height="200"></object>
+                <button @click="changeProduct(2)">切换产品2</button>
+            </div>
+        </div>
+        <!-- <button @click="viewBigPicture()">大图预览</button> -->
+        <div class="svg-container" ref="container"></div>
+    </div>
 </template>
 
 <script setup>
@@ -14,11 +72,13 @@
     import {SVGRenderer, SVGObject } from 'three/addons/renderers/SVGRenderer.js';
 
     //外部参数
-    const svg_url = 'src\\assets\\model1.svg';
-    const sucai_url = 'src\\assets\\hellokitty.png';
-    const sucai_id = '771b1cae-fca6-6147-994d-5263a3e90c1e';
-    const offsetX = 100;
-    const offsetY = 0;
+    //let svg_url = 'src\\assets\\model1.svg';
+    let svg_url = 'src\\assets\\image (1).svg';
+    let sucai_url = 'src\\assets\\hellokitty.png';
+    //const sucai_id = '771b1cae-fca6-6147-994d-5263a3e90c1e';
+    let sucai_id = '4f2ccf10-5568-644f-8c9c-0bf74edb542f';
+    let offsetX = 0;
+    let offsetY = 0;
 
     const container = ref();
     const mainRenderer = new SVGRenderer();
@@ -34,7 +94,6 @@
     // camera2.position.z = 1000; // 确保相机处于合适的距离
     // camera2.position.x = -100;
     // camera2.position.y = -100;
-
 
     const scene2 = new THREE.Scene();
     //const scene1 = new THREE.Scene();
@@ -55,16 +114,16 @@
     // const stats = new Stats();
     // document.body.appendChild(stats.domElement);
 
-    //const controls = new OrbitControls(camera1, offscreenRenderer.domElement);
+    const controls = new OrbitControls(camera1, offscreenRenderer.domElement);
     //const controls = new OrbitControls(camera2, mainRenderer.domElement);
     // 如果使用animate方法时，将此函数删除
     // controls.addEventListener('change', offscreenRenderer.render(camera1, scene1));
     // 使动画循环使用时阻尼或自传，意思是否有惯性
-    //controls.enableDamping = true;
+    controls.enableDamping = true;
     // 动态阻尼系数，就是鼠标拖拽旋转的灵敏度
-    //controls.dampingFactor = 0.25
+    controls.dampingFactor = 0.25
     // 是否可以缩放
-    //controls.enableZoom = true;
+    controls.enableZoom = false;
     // 是否自动旋转
     //controls.enableRotate = true;
     //controls.autoRotate = false;
@@ -73,7 +132,7 @@
     // 设置相机距离原点的最远距离
     //controls.maxDistance = 10000;
     // 是否开启右键拖拽
-    //controls.enablePan = true;
+    controls.enablePan = true;
 
     // const gui = new dat.GUI();
     // const posFolder = gui.addFolder("相机位置");
@@ -88,13 +147,13 @@
     const fileload = () => {
         return new Promise((resolve, reject) => {
             fileLoader.load( svg_url, function ( svg ) {
-                console.log('begin load svg!')
                 const texLoader = new THREE.TextureLoader();
                 const parser = new DOMParser();
                 svgElement = parser.parseFromString( svg, 'image/svg+xml' ).documentElement;
                 const groups = svgElement.getElementsByTagName('g');
                 for(let i = 0; i < groups.length; i++) {
-                    const smartObject = groups[i].childNodes[1];
+                    const smartObject = groups[i].querySelector('use');
+                    console.log(smartObject);
                     if(smartObject.getAttribute('href') != ('#'+sucai_id)){
                         if (i == groups.length-1){
                             console.log('load complete!');
@@ -110,16 +169,32 @@
                     //     }
                     //     continue;
                     // }
-
+                    let warpFlag = true;
+                    if(!smartObject.getAttribute('data-points-x').includes(',')){
+                        //不用自由形变
+                        warpFlag = false;
+                    }
                     const xCoords = smartObject.getAttribute('data-points-x').split(',');
                     const yCoords = smartObject.getAttribute('data-points-y').split(',');
+
                     let data_BoundingRect = smartObject.getAttribute('data-affine').split(',');
-                    let data_points = new Array(16).fill(0);
-                    // 控制点初始化
-                    for (let i = 0; i < 16; i++){
+                    let data_points;
+                    if(warpFlag){
+                        data_points = new Array(16).fill(0);
+                        // 控制点初始化
+                        for (let i = 0; i < 16; i++){
+                            //把原点坐标移动到threejs原点
+                            data_points[i] = new THREE.Vector3(parseFloat(xCoords[i]) - width/2, -parseFloat(yCoords[i]) + height/2, 1);
+                        }
+                    }else{
+                        data_points = new Array(4).fill(0);
                         //把原点坐标移动到threejs原点
-                        data_points[i] = new THREE.Vector3(parseFloat(xCoords[i]) - width/2, -parseFloat(yCoords[i]) + height/2, 1);
+                        data_points[0] = new THREE.Vector3(- width/2, height/2, 1);
+                        data_points[1] = new THREE.Vector3(width/2, height/2, 1);
+                        data_points[2] = new THREE.Vector3(width/2, -height/2, 1);
+                        data_points[3] = new THREE.Vector3(- width/2, -height/2, 1);
                     }
+                    
 
                     for(let i = 0; i < 8; i += 2) {
                         data_BoundingRect[i] = parseFloat(data_BoundingRect[i]) - width/2;
@@ -159,9 +234,14 @@
 
 
                     const scale_rotation_matrix3 =  trans_matrix3.transpose();
-                    console.log(scale_rotation_matrix3);
-                    for (let i = 0; i < 16; i++){
-                        data_points[i].applyMatrix3(scale_rotation_matrix3);
+                    if (warpFlag) {
+                        for (let i = 0; i < 16; i++) {
+                            data_points[i].applyMatrix3(scale_rotation_matrix3)
+                        }
+                    } else {
+                        for (let i = 0; i < 4; i++) {
+                            data_points[i].applyMatrix3(scale_rotation_matrix3)
+                        }
                     }
 
                     const control_rect = new Array(4);
@@ -174,18 +254,6 @@
                     }
 
                     const translate_matrix3 = new THREE.Matrix3().makeTranslation(new THREE.Vector2(data_BoundingRect[0] - control_rect[0].x, data_BoundingRect[1] - control_rect[0].y));
-
-                    for (let i = 0; i < 16; i++){
-                        data_points[i].applyMatrix3(translate_matrix3);
-                    }
-
-                    
-                    for (let i = 0; i < 4; i++) {
-                        controlPoints[i] = new Array(4);
-                        for (let j = 0; j < 4; j++) {
-                            controlPoints[i][j] = data_points[i*4 + j];
-                        }
-                    }
 
                     //辅助边框
                     if (0)
@@ -218,7 +286,6 @@
                         const box2 = new THREE.BufferGeometry();
                         box2.setIndex(indices);
                         box2.setFromPoints(control_rect);
-                        console.log(box2.attributes.position);
                         const material2 = new THREE.MeshBasicMaterial({color: 0x0000ff, side: THREE.DoubleSide, wireframe: true})
                         const plane2 = new THREE.Mesh(box2, material2);
                         //plane2.position.set((left + right)/2,(top + bottom)/2,0);
@@ -239,45 +306,99 @@
                         scene1.add(axes);
                     }
 
+                    let geometry;
+                    if (warpFlag){
+                        for (let i = 0; i < 16; i++){
+                            data_points[i].applyMatrix3(translate_matrix3);
+                        }
 
-
-                    // 创建贝塞尔曲面的几何体
-                    const geometry = new ParametricGeometry(bezierSurface, 20, 20);
+                        
+                        for (let i = 0; i < 4; i++) {
+                            controlPoints[i] = new Array(4);
+                            for (let j = 0; j < 4; j++) {
+                                controlPoints[i][j] = data_points[i*4 + j];
+                            }
+                        }
+                        // 创建贝塞尔曲面的几何体
+                        geometry = new ParametricGeometry(bezierSurface, 20, 20);
+                    }else{
+                        const vertices= new Float32Array([
+                            data_points[0].x, data_points[0].y, data_points[0].z,
+                            data_points[1].x, data_points[1].y, data_points[1].z,
+                            data_points[2].x, data_points[2].y, data_points[2].z,
+                            data_points[0].x, data_points[0].y, data_points[0].z,
+                            data_points[2].x, data_points[2].y, data_points[2].z,
+                            data_points[3].x, data_points[3].y, data_points[3].z,
+                        ]);
+                        const attribute = new THREE.BufferAttribute(vertices, 3);
+                        geometry = new THREE.BufferGeometry();
+                        geometry.attributes.position = attribute;
+                        const uvs = new Float32Array([
+                            1, 1,
+                            0, 1,
+                            0, 0,
+                            1, 1,
+                            0, 0,
+                            1, 0,
+                        ]);
+                        geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+                    }
+                    
 
                     // 创建纹理
                     texLoader.load(sucai_url,(texture) => {
-                        console.log('begin load texture '+i);
+                        console.log('加载素材！');
                         // 创建材质
-                        const material = new THREE.ShaderMaterial({ 
-                            uniforms: {
-                                img_texture: { type: 't', value: texture},
-                                imageWidth: { value: texture.image.width},
-                                imageHeight: { value: texture.image.height},
-                                planeWidth: { value: width},
-                                planeHeight: { value: height},
-                                offsetX: { value: offsetX},
-                                offsetY: { value: offsetY},
-                                backgroundColor: { value: new THREE.Color(0xff00ff)},
-                            },
-                            vertexShader: `
-                                varying vec2 vUv;
-                                void main() {
-                                    vUv = uv;  // 将纹理坐标传递到片段着色器
-                                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                                }
-                            `,
-                            fragmentShader: fragment_shader,
-                            side:THREE.DoubleSide
-                        });
+                        // const material = new THREE.ShaderMaterial({ 
+                        //     uniforms: {
+                        //         img_texture: { type: 't', value: texture},
+                        //         imageWidth: { value: texture.image.width},
+                        //         imageHeight: { value: texture.image.height},
+                        //         planeWidth: { value: width},
+                        //         planeHeight: { value: height},
+                        //         offsetX: { value: offsetX},
+                        //         offsetY: { value: offsetY},
+                        //         backgroundColor: { value: new THREE.Color(0xff00ff)},
+                        //     },
+                        //     vertexShader: `
+                        //         varying vec2 vUv;
+                        //         void main() {
+                        //             vUv = uv;  // 将纹理坐标传递到片段着色器
+                        //             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                        //         }
+                        //     `,
+                        //     fragmentShader: fragment_shader,
+                        //     side:THREE.DoubleSide
+                        // });
+
+                        // 旋转纹理
+                        // texture.rotation = Math.PI / 2 // 90度
+                        // texture.center.set(0.5, 0.5) // 设置中心为纹理的中心
+                        // texture.minFilter = THREE.NearestFilter
+                        // texture.magFilter = THREE.NearestFilter
+                        const material = new THREE.MeshBasicMaterial({
+                            map: texture,
+                            side: THREE.DoubleSide,
+                            //transparent:false,
+                            // alphaTest: 0, // 保留透明度小于 0 的像素,
+                            // transparent: true,
+                            // opacity: 1, // 1 表示完全不透明
+                        })
 
                         // 创建mesh并添加到场景中
                         const bezierSurfaceMesh = new THREE.Mesh(geometry, material);
                         //bezierSurfaceMesh.scale.set(0.1, 0.1, 0.1);  // 根据需要调整物体的大小
                         const scene1 = new THREE.Scene();
                         scene1.add(bezierSurfaceMesh);
-                        console.log('begin render scene1 '+i);
                         offscreenRenderer.render(scene1, camera1);
                         const dataURL = offscreenRenderer.domElement.toDataURL('image/png');
+
+                        const image_list = svgElement.getElementsByTagName('image');
+                        for(let j = 0; j < image_list.length; j++) {
+                            if( image_list[j].id.includes("sucaidiy"+i)){
+                                svgElement.getElementsByTagName('defs')[0].removeChild(image_list[j]);
+                            }
+                        }
 
                         let sucaiDiy = document.createElementNS('http://www.w3.org/2000/svg',"image");
                         sucaiDiy.setAttribute("crossOrigin", "anonymous");
@@ -286,13 +407,12 @@
                         sucaiDiy.setAttribute("id", "sucaidiy"+i);
                         sucaiDiy.setAttribute("xlink:href", dataURL);
                         sucaiDiy.setAttribute("href", dataURL);
-                        
-                        svgElement.getElementsByTagName('defs')[0].appendChild(sucaiDiy);
-                        groups[i].childNodes[1].setAttribute('href', '#'+"sucaidiy"+i);
-                        groups[i].childNodes[1].setAttribute('xlink:href', '#'+"sucaidiy"+i);
-                        groups[i].setAttribute('style', groups[i].childNodes[1].getAttribute('style'));
 
-                        console.log(svgElement);
+                        svgElement.getElementsByTagName('defs')[0].appendChild(sucaiDiy);
+                        smartObject.setAttribute('href', '#'+"sucaidiy"+i);
+                        smartObject.setAttribute('xlink:href', '#'+"sucaidiy"+i);
+                        groups[i].setAttribute('style', smartObject.getAttribute('style'));
+
                         svgElement.setAttribute('viewBox', "0 0 1200 1200");
                         svgElement.setAttribute('width', "600");
                         svgElement.setAttribute('height', "600");
@@ -302,11 +422,13 @@
                         // a.download = 'sucai5-' + i + '.png';
                         // document.body.appendChild(a);
                         // a.click();
-                        //console.log(svgElement);
+                        // console.log(svgElement);
+
+                        // console.log('素材url:'+sucai_url);
 
                         if (i == groups.length-1){
-                            console.log('load complete!');
-                            offscreenRenderer.dispose();
+                            //offscreenRenderer.dispose();
+                            console.log('load complete!')
                             resolve('load complete!');
                         }
                     });
@@ -315,11 +437,9 @@
         });
     }
 
-    const node = document.createElementNS( 'http://www.w3.org/2000/svg','g');
     let object;
     const offscreenRender = () => {
         return new Promise(function (resolve, reject){
-            console.log('begin renderer');
             // const sucaiDiy = document.createElementNS('http://www.w3.org/2000/svg',"image");
             // sucaiDiy.setAttribute("crossOrigin", "anonymous");
             // sucaiDiy.setAttribute("id", "hellokitty");
@@ -351,20 +471,18 @@
             // document.body.appendChild(downloadLink);
             // downloadLink.click();
 
-            
+            const node = document.createElementNS( 'http://www.w3.org/2000/svg','g');
             node.appendChild(svgElement);
             object = new SVGObject(node);
             object.position.set(-window.innerWidth/2,window.innerHeight/2,0);
-            object.scale.set(0.5, 0.5, 0.5);
             scene2.add( object );
+            // const helper = new THREE.GridHelper( width, 3);
+            // helper.position.set(-window.innerWidth/2,-window.innerHeight/2,0);
+            // helper.rotation.x = Math.PI / 2;
+            // helper.scale.set(0.1,0.1,0.1);
+            // scene2.add( helper );
 
-            const helper = new THREE.GridHelper( width, 3);
-            helper.position.set(-window.innerWidth/2,-window.innerHeight/2,0);
-            helper.rotation.x = Math.PI / 2;
-            helper.scale.set(0.1,0.1,0.1);
-            scene2.add( helper );
-
-            //mainRenderer.render(scene2, camera2);
+            mainRenderer.render(scene2, camera2);
             resolve('begin animate');
 
         })
@@ -373,7 +491,7 @@
 
     function animate(){
         requestAnimationFrame(animate);
-        //controls.update();
+        controls.update();
         mainRenderer.render(scene2, camera2);
         //offscreenRenderer.render(scene1, camera1);
     }
@@ -407,6 +525,90 @@
         return f;
     }
 
+    function changeSucaiId(id) {
+        switch(id) {
+            case 1:
+                sucai_id = 'c1e55387-e453-8a46-933e-059e869ec1c9';
+                mainRenderer.clear();
+                scene2.remove(object);
+                fileload().then(() => {
+                    offscreenRender().then(animate());
+                });
+                break;
+            case 2:
+                sucai_id = '771b1cae-fca6-6147-994d-5263a3e90c1e';
+                mainRenderer.clear();
+                scene2.remove(object);
+                fileload().then(() => {
+                    offscreenRender().then(animate());
+                });
+                break;
+        }
+    }
+
+    function changeProduct(productId) {
+        switch(productId) {
+            case 1:
+                svg_url = 'src\\assets\\svg.svg';
+                sucai_id = 'c1e55387-e453-8a46-933e-059e869ec1c9';
+                mainRenderer.clear();
+                scene2.remove(object);
+                fileload().then(() => {
+                    offscreenRender().then(animate());
+                });
+                break;
+            case 2:
+                svg_url = 'src\\assets\\model1.svg';
+                sucai_id = '771b1cae-fca6-6147-994d-5263a3e90c1e';
+                mainRenderer.clear();
+                scene2.remove(object);
+                fileload().then(() => {
+                    offscreenRender().then(animate());
+                });
+                break;
+            case 3:
+                svg_url = 'src\\assets\\image (1).svg';
+                sucai_id = '4f2ccf10-5568-644f-8c9c-0bf74edb542f';
+                mainRenderer.clear();
+                scene2.remove(object);
+                fileload().then(() => {
+                    offscreenRender().then(animate());
+                });
+                break;
+        }
+        
+    }
+
+    function changeSucai(sucaiId) {
+        switch(sucaiId) {
+            case 1:
+                sucai_url = 'src\\assets\\hellokitty.png';
+                mainRenderer.clear();
+                scene2.remove(object);
+                fileload().then(() => {
+                    offscreenRender().then(animate());
+                });
+                break;
+            case 2:
+                sucai_url = 'src\\assets\\sucai2.png';
+                mainRenderer.clear();
+                scene2.remove(object);
+                fileload().then(() => {
+                    offscreenRender().then(animate());
+                });
+                break;
+        }
+        
+    }
+
+    function viewBigPicture() {
+        const originalSize = mainRenderer.getSize();
+        mainRenderer.setSize(2000, 2000);
+        mainRenderer.render(scene2, camera2);
+
+        const dataUrl = mainRenderer.domElement.toDataURL("image/png");
+        mainRenderer.setSize(originalSize.x, originalSize.y);
+    }
 
     const fragment_shader = 
     `
@@ -447,8 +649,8 @@
     `
 
     fileload().then(() => {
-        console.log('文件加载完毕!');
-        offscreenRender().then(animate());
+        offscreenRender();
+        animate();
     });
     
     //挂载完毕获取dom  
@@ -469,34 +671,21 @@
     let scaleFactor = 1.1; // 缩放因子
     window.addEventListener('wheel', (event) => {
     // 阻止默认滚动行为
-    //event.preventDefault();
-    console.log("camera postion:");
-    console.log( camera2.position);
-    console.log("object postion:");
-    console.log(object.position);
-    console.log("object scale:");
-    console.log(object.scale);
+    event.preventDefault();
 
     if (event.deltaY > 0) {
         // 向下滚动，缩小
-        camera2.position.z *= scaleFactor;
+        const svg_width = scene2.children[0].node.childNodes[0].getAttribute('width');
+        const svg_height = scene2.children[0].node.childNodes[0].getAttribute('height');
+        scene2.children[0].node.childNodes[0].setAttribute('width', svg_width * scaleFactor);
+        scene2.children[0].node.childNodes[0].setAttribute('height', svg_height * scaleFactor);
     } else {
         // 向上滚动，放大
-        camera2.position.z /= scaleFactor;
+        const svg_width = scene2.children[0].node.childNodes[0].getAttribute('width');
+        const svg_height = scene2.children[0].node.childNodes[0].getAttribute('height');
+        scene2.children[0].node.childNodes[0].setAttribute('width', svg_width / scaleFactor);
+        scene2.children[0].node.childNodes[0].setAttribute('height', svg_height / scaleFactor);
     }
     }, { passive: false });
 
 </script>
-
-<!-- <style scoped>
-#svg-container {
-  display: flex;
-  justify-content: center; /* 水平方向居中 */
-  align-items: center; /* 垂直方向居中 */
-  width: 100vw; /* 占满整个浏览器宽度 */
-  height: 100vh; /* 占满整个浏览器高度 */
-  background-color: #202020; /* 背景色 */
-  overflow: hidden; /* 隐藏溢出的内容 */
-  position: relative;
-}
-</style> -->

@@ -10,13 +10,15 @@ export default defineConfig({
       '@': '/src'
     }
   },
-
-  // css: {
-  //   preprocessorOptions: {
-  //     scss: {
-  //       javascriptEnabled: true,
-  //       additionalData: '@import "./src/styles/variable.scss";',
-  //     },
-  //   },
-  // },
+  server: {
+    host: '0.0.0.0',
+    port: 3000,
+  },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler'
+      },
+    },
+  },
 })

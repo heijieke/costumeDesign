@@ -3,6 +3,7 @@ import Diy from "@/views/Diy.vue";
 import sucaiRender from "@/views/sucaiRender.vue";
 import texture from '@/views/texture.vue';
 import Surface from '@/views/Surface.vue';
+import test from '@/views/test.vue';
 
 const routes = [
   {
@@ -24,6 +25,11 @@ const routes = [
     path: "/surface",
     name: "surface",
     component: Surface,
+  },
+  {
+    path: "/test",
+    name: "test",
+    component: test,
   },
 ];
 

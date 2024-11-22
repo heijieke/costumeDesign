@@ -12,12 +12,14 @@
     "@types/node": "^22.9.0",
     "axios": "^1.7.7",
     "dat.gui": "^0.7.9",
+    "element-plus": "^2.8.8",
     "three": "^0.170.0",
     "vue": "^3.5.12",
     "vue-router": "^4.4.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.4",
+    "spectorjs": "^0.9.30",
     "vite": "^5.4.10"
   }
 }
