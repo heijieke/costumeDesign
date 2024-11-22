@@ -31,7 +31,7 @@
 
     let controls;
     let camera;
-
+    let points_num = 0;
     const offsetX = 100;
     const offsetY = 0;
     const svg_url = 'src\\assets\\image (1).svg';
@@ -259,7 +259,6 @@
                 const axes = new THREE.AxesHelper(100);
                 scene.add(axes);
 
-                //先绘制蒙版再绘制内容
                 const path = new THREE.Path()
                 let path_num = 0;
                 for (let i = 0; i < paths.length; i++) {
@@ -281,43 +280,40 @@
                     }
                 }
                 const points = path.getPoints(20);
-                const shape = new THREE.Shape(points);
-                const maskGeometry = new THREE.ShapeGeometry(shape);
-                const maskMaterial = new THREE.MeshBasicMaterial({
-                    color: 0xffffff,
-                    depthWrite: false, // 不写入深度缓冲区
-                    stencilWrite: true,
-                    stencilFunc: THREE.AlwaysStencilFunc,
-                    stencilZPass: THREE.ReplaceStencilOp,
-                    stencilRef: 1,
+                console.log(points)
+                const pointArray = new Float32Array();
+                points_num = 0;
+                points.forEach((path) => {
+                    path.forEach((point) => {
+                        pointArray.add(new THREE.Vector2(point.x, point.y))
+                        points_num++
+                    })
                 })
-                scene.add(new THREE.Mesh(maskGeometry, maskMaterial))
 
                 // 创建纹理
                 texLoader.load(sucai_url,(texture) => {
                     console.log('begin load texture ');
                     // 创建材质
-                    // const material = new THREE.ShaderMaterial({ 
-                    //     uniforms: {
-                    //         img_texture: { type: 't', value: texture},
-                    //     },
-                    //     vertexShader: `
-                    //         varying vec2 vUv;
-                    //         void main() {
-                    //             vUv = uv;  // 将纹理坐标传递到片段着色器
-                    //             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                    //         }
-                    //     `,
-                    //     fragmentShader: fragment_shader,
-                    //     side:THREE.DoubleSide,
-                    // });
-                    const material = new THREE.MeshBasicMaterial( { 
-                        side: THREE.DoubleSide,
-                        color: 0x00ff00,
-                        stencilTest: true,
-                        stencilFunc: THREE.EqualStencilFunc,
-                        stencilRef: 0, //与蒙版设置的参考值一致
-                    } );
+                    const material = new THREE.ShaderMaterial({ 
+                        uniforms: {
+                            img_texture: { type: 't', value: texture},
+                            points: { value: points }, // vec2数组
+                            pathNum: { value: points.length }, // 数组长度
+                            pathPointNum: { value: 20},
+                            screenWidth: { value: width},
+                            screenHeight: { value: height},
+                        },
+                        vertexShader: `
+                            varying vec2 vUv;
+                            void main() {
+                                vUv = uv;  // 将纹理坐标传递到片段着色器
+                                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                            }
+                        `,
+                        fragmentShader: fragment_shader,
+                        side:THREE.DoubleSide,
+                    });
+
                     // 旋转纹理
                     // texture.rotation = Math.PI / 2 // 90度
                     // texture.center.set(0.5, 0.5) // 设置中心为纹理的中心
@@ -475,6 +471,37 @@
     `
         uniform sampler2D img_texture;
         varying vec2 vUv;
+        uniform vec2 points[` + points_num + `];
+        uniform int pathNum; // 数组长度
+        uniform int pathPointNum;
+        uniform float screenWidth;
+        uniform float screenHeight;
+
+        bool isPointInside(vec2 p) {
+            int intersections = 0;
+            float maxX = min_float, maxY = min_float, minX = max_float, minY = max_float;
+            for (int i = 0; i < pathNum; i++) {
+                vec2 v1 = pathPoints[i];
+                vec2 v2 = pathPoints[(i + 1) % 100];
+
+                if(v1.x > maxX) maxX = v1.x;
+                if(v1.y > maxY) maxY = v1.y;
+                if(v1.x < minX) minX = v1.x;
+                if(v1.y < minY) minY = v1.y;
+
+                // 判断 p 的射线是否与线段 v1-v2 相交
+                // if ((v1.y > p.y) != (v2.y > p.y)) {
+                //     float xIntersection = mix(v1.x, v2.x, (p.y - v1.y) / (v2.y - v1.y));
+                //     if (xIntersection > p.x) {
+                //         intersections++;
+                //     }
+                // }
+            }
+
+            if(p.x > minX && p.x < maxX && p.y > minY && p.y < maxY)
+                return true;
+            return false;
+        }
 
         void main() {
             vec2 vUv2 = vec2(vUv.x, 1.0 - vUv.y);

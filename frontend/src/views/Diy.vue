@@ -349,41 +349,41 @@
                     texLoader.load(sucai_url,(texture) => {
                         console.log('加载素材！');
                         // 创建材质
-                        // const material = new THREE.ShaderMaterial({ 
-                        //     uniforms: {
-                        //         img_texture: { type: 't', value: texture},
-                        //         imageWidth: { value: texture.image.width},
-                        //         imageHeight: { value: texture.image.height},
-                        //         planeWidth: { value: width},
-                        //         planeHeight: { value: height},
-                        //         offsetX: { value: offsetX},
-                        //         offsetY: { value: offsetY},
-                        //         backgroundColor: { value: new THREE.Color(0xff00ff)},
-                        //     },
-                        //     vertexShader: `
-                        //         varying vec2 vUv;
-                        //         void main() {
-                        //             vUv = uv;  // 将纹理坐标传递到片段着色器
-                        //             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                        //         }
-                        //     `,
-                        //     fragmentShader: fragment_shader,
-                        //     side:THREE.DoubleSide
-                        // });
+                        const material = new THREE.ShaderMaterial({ 
+                            uniforms: {
+                                img_texture: { type: 't', value: texture},
+                                imageWidth: { value: texture.image.width},
+                                imageHeight: { value: texture.image.height},
+                                planeWidth: { value: width},
+                                planeHeight: { value: height},
+                                offsetX: { value: offsetX},
+                                offsetY: { value: offsetY},
+                                backgroundColor: { value: new THREE.Color(0xff00ff)},
+                            },
+                            vertexShader: `
+                                varying vec2 vUv;
+                                void main() {
+                                    vUv = uv;  // 将纹理坐标传递到片段着色器
+                                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                                }
+                            `,
+                            fragmentShader: fragment_shader,
+                            side:THREE.DoubleSide
+                        });
 
                         // 旋转纹理
                         // texture.rotation = Math.PI / 2 // 90度
                         // texture.center.set(0.5, 0.5) // 设置中心为纹理的中心
                         // texture.minFilter = THREE.NearestFilter
                         // texture.magFilter = THREE.NearestFilter
-                        const material = new THREE.MeshBasicMaterial({
-                            map: texture,
-                            side: THREE.DoubleSide,
-                            //transparent:false,
-                            // alphaTest: 0, // 保留透明度小于 0 的像素,
-                            // transparent: true,
-                            // opacity: 1, // 1 表示完全不透明
-                        })
+                        // const material = new THREE.MeshBasicMaterial({
+                        //     map: texture,
+                        //     side: THREE.DoubleSide,
+                        //     //transparent:false,
+                        //     // alphaTest: 0, // 保留透明度小于 0 的像素,
+                        //     // transparent: true,
+                        //     // opacity: 1, // 1 表示完全不透明
+                        // })
 
                         // 创建mesh并添加到场景中
                         const bezierSurfaceMesh = new THREE.Mesh(geometry, material);
@@ -629,22 +629,8 @@
             vUv3 = rotationMatrix * vUv3;
             vec2 vUv2 = vec2(vUv3.x + 0.5, vUv3.y + 0.5);
 
-            // 计算纹理的有效区域偏移
-            float scale = min(planeWidth/imageWidth, planeHeight/imageHeight);
-            float scaleX = (planeWidth * vUv2.x - offsetX*scale)/imageWidth/scale;
-            float scaleY = (planeHeight * vUv2.y - offsetY*scale)/imageHeight/scale;
-            
-            if (scaleX >= 0.0 && scaleY >= 0.0 && scaleX <= 1.0 && scaleY <=1.0) {
-                // 缩放UV坐标
-                vUv2.x = scaleX;
-                vUv2.y = scaleY;
-                vec4 texColor = texture2D(img_texture, vUv2);
-                gl_FragColor = texColor;
-
-            } else {
-                // 超出有效区域，渲染背景颜色
-                gl_FragColor = vec4(backgroundColor, 1.0);
-            }
+            vec4 texColor = texture2D(img_texture, vUv2);
+            gl_FragColor = texColor;
         }
     `
 
